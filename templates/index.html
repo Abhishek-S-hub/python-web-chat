@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Chat</title>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #chat {
+        width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+      .message-container {
+        overflow-y: auto;
+        max-height: 300px; /* Limit height for scrolling */
+        margin-bottom: 10px;
+      }
+      .message {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        clear: both;
+        max-width: 70%; /* Limit message width */
+        word-wrap: break-word; /* Wrap long words */
+      }
+      .message.user {
+        background-color: #dcf8c6; /* Light green for user's messages */
+        float: right;
+      }
+      .message.other {
+        background-color: #f0f0f0; /* Light gray for other's messages */
+        float: left;
+      }
+      #input {
+        display: flex;
+        margin-top: 20px;
+      }
+      #input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      #input button {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #28a745;
+        color: #fff;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat">
+      <h2>Live Chat</h2>
+      <div id="messages" class="message-container"></div>
+      <div id="input">
+        <input
+          id="message"
+          autocomplete="off"
+          placeholder="Type your message here..."
+        />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+    <script>
+      // Initialize Socket.IO
+      const socket = io();
+
+      socket.on("connect", function () {
+        console.log("Connected to server");
+      });
+
+      socket.on("message", function (data) {
+        const messagesContainer = document.getElementById("messages");
+        const messageElement = document.createElement("div");
+        messageElement.textContent = data.msg;
+        messageElement.classList.add("message");
+        if (data.user === "user") {
+          messageElement.classList.add("user");
+        } else {
+          messageElement.classList.add("other");
+        }
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+
+      function sendMessage() {
+        const input = document.getElementById("message");
+        const message = input.value.trim();
+        if (message !== "") {
+          socket.send({ msg: message, user: "user" });
+          input.value = "";
+        }
+      }
+
+      document
+        .getElementById("message")
+        .addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            sendMessage();
+          }
+        });
+    </script>
+  </body>
+</html>
